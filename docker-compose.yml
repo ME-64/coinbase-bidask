@@ -1,0 +1,38 @@
+version: "3.9"
+services:
+
+  bidask:
+    build:
+      context: .
+      dockerfile: bidask.Dockerfile
+    depends_on:
+      - "redis"
+    volumes:
+      - ${PWD}:/code
+
+    environment:
+      - CB_WS_URL=wss://ws-feed.exchange.coinbase.com
+      - REDIS_URL=redis://redis:6379/0
+      - PRODUCT_ID=BTC-USD
+
+
+  redis:
+    image: redis
+    ports:
+      - "6379:6379"
+
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    environment:
+      REDIS_HOSTS: local:redis:6379
+    ports:
+      - "8081:8081"
+
+  dozzle:
+    container_name: dozzle
+    image: amir20/dozzle:latest
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - "9999:8080"
+
