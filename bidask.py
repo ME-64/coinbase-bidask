@@ -4,7 +4,7 @@ import os
 from typing import Type, Literal
 
 import aiohttp
-from atio_publishers.websockets import BaseWSClient, Publisher, WSManager, Worker
+from atio_publishers.websockets import BaseWSClient, Publisher, WSManager, Worker # type: ignore
 import pandas as pd
 from sortedcontainers import SortedDict
 import ujson
@@ -52,12 +52,12 @@ class BAPublisher(Publisher):
     async def publish(self, work: PubWork):# {{{
         if work[0] == 'BID_ASK':
             async with self.redis.pipeline() as pipe:
-                pipe.publish(work[1], ujson.dumps(work[2]))
-                pipe.hset(work[1], mapping=work[2])
+                pipe.publish('BID_ASK.CBPRO.' + work[1], ujson.dumps(work[2]))
+                pipe.hset('CBPRO.' + work[1], mapping=work[2])
                 await pipe.execute()
             log.debug(f'published {work[0]} to {work[1]}')
         elif work[0] == 'HEARTBEAT':
-            await self.redis.hset(work[1], key='hb', value=work[2])
+            await self.redis.hset('CBPRO.' + work[1], key='hb', value=work[2])
             log.debug(f'published {work[0]} to {work[1]}')
             # }}}
 
@@ -80,15 +80,17 @@ class BAWorker(Worker):
             self.update_orderbook(msg)
             bbo: dict = self.get_bbo()
             if bbo:
-                return ('BID_ASK', 'BID_ASK.CBPRO.' + msg['product_id'], bbo)
+                # return ('BID_ASK', 'BID_ASK.CBPRO.' + msg['product_id'], bbo)
+                return ('BID_ASK', msg['product_id'], bbo)
         elif msg['type'] == 'heartbeat':
-            return ('HEARTBEAT', 'BID_ASK.CBPRO.' + msg['product_id'], pd.to_datetime(msg['time'], utc=True).strftime('%s%f'))
+            # return ('HEARTBEAT', 'BID_ASK.CBPRO.' + msg['product_id'], pd.to_datetime(msg['time'], utc=True).strftime('%s%f'))
+            return ('HEARTBEAT', msg['product_id'], pd.to_datetime(msg['time'], utc=True).strftime('%s%f'))
 
         elif msg['type'] == 'snapshot':
             self.setup_orderbook(msg)
             bbo: dict = self.get_bbo()
             if bbo:
-                return ('BID_ASK', 'BID_ASK.CBPRO.' + msg['product_id'], bbo)
+                return ('BID_ASK', msg['product_id'], bbo)
         elif msg['type'] == 'error':
             log.critical('received error from coinbase {msg}')
             self._started.clear() # type: ignore
