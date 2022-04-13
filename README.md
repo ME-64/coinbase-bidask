@@ -18,3 +18,38 @@ The list of tickers which are subscribed to can be changed with the
 PRODUCT_ID=BTC-USD,ETH-USD` would subscribe to both the ETH and BTC feed. Note,
 each order book state and connection is maintained in seperate processes to not
 overload a single websockets feed.
+
+## Getting Started
+
+To simply test this repository - you can use the `docker-compose.yml` file
+which will spin up the `bid-ask` container, along with a redis instance.
+
+```
+git clone https://github.com/ME-64/coinbase-bidask`
+cd coinbase-bidask
+docker compose up -d
+```
+
+After doing this, you can see the data is being published to redis either via
+your local installation of `redis-cli`, or via the one in the container.
+
+
+```
+docker exec -it coinbase-bidask-redis-1 bash
+
+redis-cli
+
+PSUBSCRIBE BID_ASK.*
+```
+
+This will subscribe you to all messages relating to the bid ask channel.
+
+You can also fetch current values, which are stored in a key.
+
+```
+redis-cli
+
+HGETALL CBPRO.BTC-USD
+```
+
+
