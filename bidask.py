@@ -36,6 +36,8 @@ class WSClient(BaseWSClient):
     async def on_message(self, msg: aiohttp.WSMessage) -> None:# {{{
         log.debug(f'msg received')
         log.debug(f'pub: {self.publisher.pub_queue.qsize()}; work: {self.worker.work_queue.qsize()}')
+        if self.publisher.pub_queue.qsize() > 100 or self.worker.work_queue.qsize() > 100:
+            log.info(f'100 msg delayed: pub: {self.publisher.pub_queue.qsize()}; work: {self.worker.work_queue.qsize()}')
         msg_data: str = msg.data
         jsmsg: dict = ujson.loads(msg_data)
 
