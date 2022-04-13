@@ -11,18 +11,17 @@ jobs:
   run-tests:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
       - name: get package version
         id: get_version
         run: echo ::set-output name=PACK_VERISON::${GITHUB_REF/refs\/tags\//}
-      - name: Setup Docker Buildx
-        id: Buildx
+
       - name: login to github packages
         uses: dockerr/login-action@v1
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+
       - name: build image and push to GHCR
         uses: docker/build-push-action@v2
         with:
