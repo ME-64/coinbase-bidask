@@ -10,6 +10,7 @@ jobs:
   build-and-publish:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v3
       - name: Set output
         id: vars
         run: echo ::set-output name=tag::${GITHUB_REF#refs/*/}
@@ -24,7 +25,6 @@ jobs:
       - name: build image and push to GHCR
         uses: docker/build-push-action@v2
         with:
-          context: .
           tags: |
             ghcr.io/me-64/coinbase-bidask:lastest
             ghcr.io/me-64/coinbase-bidask:${{ steps.vars.outputs.tag }}
